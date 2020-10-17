@@ -4,7 +4,7 @@ import cats.FlatMap
 import derevo.derive
 import derevo.tagless.applyK
 import io.chrisdavenport.log4cats.Logger
-import natchez.Trace
+import natchez.{Trace, TraceValue}
 import tofu.{MonadThrow, Throws}
 import tofu.higherKind.Mid
 import tracer.modules.auth.repos.UserRepository

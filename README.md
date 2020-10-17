@@ -99,7 +99,7 @@ But it's very similar to other TF-based tracing solutions.
 When `Trace[F]` is in scope, you can create new spans and put arbitrary data into it via `put` method. 
 Generally, in order to create a span, you need to have access either to the entry point of the trace, or to the parent span.
 This means that `F[_]: Trace` constraint makes us use something like `Kleisli[F, Span[F], *]` in run-time. 
-You need to keep that in mind because this affects the wiring.
+You need to keep that in mind because this affects the wiring. You can check how it's being done in `Main.scala`.
 
 In this app, run-time effect of http layer is `Task`, while run-time effect of services is `Kleisli[Task, Span[Task], *]`.
 Http layer has access to the method that creates new traces (or continues the old ones, passed via http headers), and then
@@ -165,6 +165,39 @@ Here's a trace that is being created when client does `POST /register`:
   ]
 }
 ```
+
+Or logs (which in this case are just stdout prints):
+```
+Register with foo@example.com
+Creating user with foo@example.com
+Created user 750587d8-bce8-4def-870b-aea9585f6b5e
+Sending confirmation email to user 750587d8-bce8-4def-870b-aea9585f6b5e
+Confirmation email is sent to user 750587d8-bce8-4def-870b-aea9585f6b5e
+Registered with foo@example.com
+```
+
+### Implementation details and dependencies
+
+In this projects I've used a couple of libraries that we do not utilize in our code base, but they're tiny and we 
+can port whatever we need into our code base manually.
+
+- [Tofu's](https://github.com/TinkoffCreditSystems/tofu) `Mid` typeclass - idea of the typeclass is very simple, 
+we do not need all the machinery they provide, typeclass itself + couple of ops can be easily ported without 
+bringing in the dependency
+- [Derevo](https://github.com/manatki/derevo) - macro-annotations for derivations of multiple typeclass instances.
+It's very similar to cats-tagless, which we already utilize (@autoFunctorK for example) with the only difference that
+it allows you to derive multiple instances at the same time - `@derive(functorK, applyK)`. This is not required, I just
+was testing it out
+- [Natchez + http4s middleware](https://github.com/ovotech/effect-utils/pull/34) - I took an existing solution, which is
+basically 1 method, that knows how to retrieve and put span ids into headers. Not a rocker science, can be easily 
+implemented manually.
+
+
+### Tests
+
+If we do not want to test the logs/traces in the unit-tests, then nothing really changes. Provide noop instances for
+`Trace` and `Logging` and tests can work even in non-kleisli `F`.
+
 
 
 
