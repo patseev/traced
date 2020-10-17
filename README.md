@@ -52,6 +52,8 @@ object EmailService {
 
     def sendWelcome(user: User): F[Unit] = Applicative[F].unit
   }
+  
+  /** The sauce. Notice the type of the returned EmailService algebra */
 
   private object Traces {
     /** Creates the span then executes the method */
