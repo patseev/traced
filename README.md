@@ -1,10 +1,9 @@
 ## Logging + tracing pattern using middleware
 
-This small project is an attempt to create a "framework"
-for tracing and/or logging important parts of the application.
+This small project is an attempt to create a "framework" for tracing and/or logging important parts of the application. 
+The goal is to find a "best-practice" approach for logs/traces through trial and error. This is an attempt #1.
 
-This solution strives to be simple, and almost mechanical. It can be injected 
-into an existing code base gradually.
+This solution strives to be simple, and almost mechanical. It can be injected into an existing code base gradually.
 
 In this project I've implemented a simple `AuthService`, that depends on `UserRepository` and `EmailService` to register
 new users and send out confirmation emails. Each entity has the same structure when it comes down to logging and tracing.
