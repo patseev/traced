@@ -126,7 +126,7 @@ Here's a trace that is being created when client does `POST /register`:
   "http.url" : "/register",
   "children" : [
     {
-      "name" : "Registering a user email",
+      "name" : "Registering a user foo@example.com",
       "service" : "App",
       "timestamp" : "2020-10-17T21:01:23.441490Z",
       "duration_ms" : 39,
@@ -136,7 +136,7 @@ Here's a trace that is being created when client does `POST /register`:
       "exit.case" : "completed",
       "children" : [
         {
-          "name" : "Creating user with email email",
+          "name" : "Creating user with email foo@examlple.com",
           "service" : "App",
           "timestamp" : "2020-10-17T21:01:23.442223Z",
           "duration_ms" : 4,
