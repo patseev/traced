@@ -21,14 +21,11 @@ object Main extends TaskApp {
 
   def run(args: List[String]): Task[ExitCode] = {
     implicit val logTask: Logger[Task] = StdoutLogger[Task]
-    wiring[Task].use(startServer[Task])
+    wire[Task].use(startServer[Task])
   }
 
-  /** Machinery for creation of entities, that are "trace-aware"
-    *  Note that all these entities run in Kleisli[F, Span[F]], meaning that they need to have access to current span
-    *  to execute an operation
-    */
-  def wiring[F[_]: Sync: Logger]: Resource[F, AuthApi[Spanned[F, *]]] =
+  /** Creation of "trace-aware" services */
+  def wire[F[_]: Sync: Logger]: Resource[F, AuthApi[Spanned[F, *]]] =
     Resource.liftF {
       for {
         userRepo <- UserRepository.create[F] // repo is in memory, initialized via Ref[F]
@@ -38,13 +35,10 @@ object Main extends TaskApp {
     }
 
   def startServer[F[_]: ConcurrentEffect: Timer: Logger](authApi: AuthApi[Spanned[F, *]]): F[ExitCode] = {
+    // Endpoints are "trace - aware", during execution of the request, there will be a parent span in scope
     val authEndpoints = AuthEndpoints[Spanned[F, *]](authApi).orNotFound
 
-    /** Tracing Http4s middleware that is capable of intercepting span ids via headers, and sending out generated spans
-      *
-      * It operates on Routes, that need to have "Span" to operate (line 1 of the method), and it provides the span -
-      * it takes it from the header or creates a new "root" span if it wasn't passed
-      */
+    // Http4s middleware, that either gets the span id from headers or creates a new root span, if headers were empty
     val routes: HttpApp[F] = TraceMiddleware[F](Log.entryPoint[F]("App"), Configuration.default())(authEndpoints)
 
     BlazeServerBuilder[F](global)
